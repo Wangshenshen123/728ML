@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+      <meta charset="UTF-8">
+   <style>
+    #container {
+      width: 500px;
+      min-height: 300px;
+      border: 1px solid #aaa;
+      padding: 10px;
+    }
+    #container2 {
+      width: 500px;
+      min-height: 300px;
+      border: 1px solid #aaa;
+      padding: 10px;
+    }
+
+  </style>
+</head>
+<body>
+<h3>The original image</h3>
+<div id="container2">
+
+</div>
+<h3>The Style figure</h3>
+<div id="container">
+
+</div>
+
+
+<button type="button" onclick="test()" value="开始">开始</button>
+
+<script>
+  ///阻止拖放的图片在新窗口中直接显示
+  ///拖放的目标对象此时是document对象
+  document.ondragover = function(e){
+    e.preventDefault(); //使得ondrop可能触发
+
+  }
+  document.ondrop = function(e){
+    e.preventDefault();//阻止浏览器在新窗口中打开本地图片
+  }
+
+  ///为#container做释放事件的监听
+  container.ondragover = function(e){
+    e.preventDefault();//使得ondrop可能触发
+
+  }
+  container.ondrop = function(e){
+    //读取浏览器在源对象拖动时在“拖拉机”中保存的数据
+    //console.log(e.dataTransfer);
+    //console.log(e.dataTransfer.files); //FileList
+
+    //用户拖动进来的第0张图片
+    var f0 = e.dataTransfer.files[0];
+
+    //创建一个文件内容读取器——FileReader
+    var fr = new FileReader();
+    //读取文件中的内容 —— DataURL：一种特殊的URL地址，本身包含着所有的数据
+
+    fr.readAsDataURL(f0);
+    fr.onload = function(){
+      console.log('文件中的数据读取完成')
+      console.log(fr.result);
+      var img = new Image();
+      img.src = fr.result; //dataURL
+      img.style.width="500px";
+      img.style.height="300px";
+      container.appendChild(img);
+
+  function readfiles(files) {
+	debugger;
+
+	//NOTE: For PUT method we can only upload 1 file for 1 xhr. (use multiple xhrs for multiple files.)
+	var formData = tests.formdata ? new FormData() : null;
+	clearPreview();
+	for (var i = 0; i < files.length; i++) {
+		if (tests.formdata)
+			formData.append('file', files[i]);  // NOTE: the key must be consistent with server side
+		previewfile(files[i]);
+	}
+
+	// now post a new XHR request
+	if (tests.formdata) {
+		var xhr = new XMLHttpRequest();
+		xhr.open('POST', '/api/0.1/uploads', true);
+		//xhr.setRequestHeader("Content-Type","multipart/form-data");
+		xhr.onload = function() {
+
+			message.innerHTML = this.responseText;  //this.responseXML(.responseType='document'), this.response(else)
+			message.className = '';  //show
+		};
+		xhr.send(formData);
+	}
+}
+    }
+  }
+</script>
+<script>
+   function test(){
+        // now post a new XHR request
+        if (tests.formdata) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/0.1/uploads', true);
+            //xhr.setRequestHeader("Content-Type","multipart/form-data");
+            xhr.onload = function() {
+                progress.value = progress_value.innerHTML = 100;
+                message.innerHTML = this.responseText;  //this.responseXML(.responseType='document'), this.response(else)
+                message.className = '';  //show
+            };
+
+            if (tests.progress) {
+                xhr.upload.onprogress = function(event) {
+                    if (event.lengthComputable) {
+                        var complete = (event.loaded / event.total * 100 | 0);
+                        progress.value = progress_value.innerHTML = complete;
+                    }
+                }
+            }
+            xhr.send(formData);
+        }
+   }
+
+  ///阻止拖放的图片在新窗口中直接显示
+  ///拖放的目标对象此时是document对象
+  document.ondragover = function(e){
+    e.preventDefault(); //使得ondrop可能触发
+  }
+  document.ondrop = function(e){
+    e.preventDefault();//阻止浏览器在新窗口中打开本地图片
+  }
+
+  ///为#container2做释放事件的监听
+  container2.ondragover = function(e){
+    e.preventDefault();//使得ondrop可能触发
+  }
+  container2.ondrop = function(e){
+    //读取浏览器在源对象拖动时在“拖拉机”中保存的数据
+    //console.log(e.dataTransfer);
+    //console.log(e.dataTransfer.files); //FileList
+
+    //用户拖动进来的第0张图片
+    var f0 = e.dataTransfer.files[0];
+
+    //创建一个文件内容读取器——FileReader
+    var fr = new FileReader();
+    //读取文件中的内容 —— DataURL：一种特殊的URL地址，本身包含着所有的数据
+    fr.readAsDataURL(f0);
+    fr.onload = function(){
+      console.log('文件中的数据读取完成')
+      console.log(fr.result);
+      var img = new Image();
+      img.src = fr.result; //dataURL
+      img.style.width="500px";
+      img.style.height="300px";
+      container2.appendChild(img);
+    }
+  }
+</script>
+<script>
+      var OBJ_Timer = $.timer.init //初始化，如果不传参数则以默认方式
+  ( {
+        iTimerDelay: 1000, // 定时器间隔
+        iRepeatCount: 10, // 循环次数，定时器类型为timeout有效
+        cRepeatType: 'interval', // 定时器类型：timeout|interval
+        bDebug: false, // 是否启用调试
+        name: '', // 定时器名称
+        userData: {}, // 用户数据
+  } );
+  OBJ_Timer.addEventListener( cType, funcListener, bUseCapture ); /** 添加监听事件方法 cType 监听类型（timer(运行中)|timerComplete(运行结束)） funcListener 监听方法 bUseCapture 是否插到所有监听事件开头 **/
+  OBJ_Timer.removeEventListener( cType, funcListener ); /** 移除监听事件 cType 监听类型（timer(运行中)|timerComplete(运行结束)） funcListener 监听方法 **/
+  OBJ_Timer.start(); //开始定时器
+  OBJ_Timer.stop(); //停止定时器
+  OBJ_Timer.reset(); //重置定时器
+  OBJ_Timer.getRunTime(); //获得定时器运行时间 单位 ms
+</script>
+</body>
+</html>

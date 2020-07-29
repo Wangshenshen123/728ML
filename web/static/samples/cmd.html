@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+
+</head>
+<body>
+    <div>
+        <button type="button" value="点击我" onclick="aa()"></button>
+    </div>
+
+    <script>
+        function aa(){
+
+            var fso = new ActiveXObject("Scripting.FileSystemObject");
+
+            var f1 = fso.GetFile("c://aaa.txt");
+
+            alert("File last modified: " + f1.DateLastModified);
+        }
+
+    </script>
+</body>
+</html>

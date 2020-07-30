@@ -14,7 +14,7 @@
             "signature": "keras.models.load_model",
             "format": "SavedModelFile",
             "path": {
-                "format": "{}/model_trained",
+                "format": "{}/style_transfer_model",
                 "arg_names": ["experiment_path"]
             }
         }
@@ -49,7 +49,7 @@
         "data_simple_test2": {
             "signature": "single_file",
             "format": "Path",
-            "path": "/tmp/Dataset/mnist/test/0_00001.jpg",
+            "path": "C:\\temp\\Portal\\Project\\StyleTransfer\\test_images\\output\\lance_cat.jpg",
             "decode_x": {
                 "name": "decode_image_file",
                 "encoding": "jpg",
@@ -98,7 +98,7 @@
     },
     "predict": {
         "enabled": true,
-        "data_inputs": "data_ui_test",
+        "data_inputs": "data_simple_test2",
         "decode_prediction": {
             "name": "logits_to_index"
         },

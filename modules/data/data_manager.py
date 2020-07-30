@@ -144,7 +144,7 @@ class DataManager:
 
             @track_entry_and_exit.coro()
             async def coro_consume_files(abspath_or_list, cbs):
-                # nonlocal this_task  # TEMP
+                # nonlocal this_task
                 # assert this_task is not None, '`this_task` should have been assigned before entering related coro.'
 
                 import modules.data.decode_tf as decode_tf
@@ -173,6 +173,10 @@ class DataManager:
                 # except Exception as e:
                 #     result.update({'error': e.__repr__()})
                 on_done(result)
+                # from utils import imread
+                # import os
+                # for i in filepaths:
+                #     result.append(imread(os.path.join(i), mode='RGB'))
                 # TODO: how to link to the next task (e.g. model.predict) so user can monitor process.
                 return result    # == this_task.set_result(result)
 

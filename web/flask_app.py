@@ -1,5 +1,3 @@
-from shutil import copyfile
-
 from helpers.util import DEBUG, INFO, WARN, ERROR, get_new_name_if_exists, Params
 from typing import Callable, Iterable
 
@@ -10,6 +8,7 @@ __all__ = [
 # IMPROVE: use map cache: (package_name, root_path) -> webapp instance
 app = None
 
+from shutil import copyfile
 from flask import Flask, request
 
 
@@ -278,15 +277,16 @@ def get_webapp(import_name=__name__, root_path=None, **params):
         else:
             dispatch_result = dispatch_results[0]  # TEMP
             assert isinstance(dispatch_result, dict), f"dispatch_results is expected to be a dict, but get {type(dispatch_result)}"
-            # expected vaues: 1.{'status': 'processing'} 2.{'status': 'finished', 'result': '/experiments/.../...jpg'}
-            # TODO: convert extra_result['..'] from abspath to url => osp.path.basename() + url_header
-            src_abspath = dispatch_result['result']
-            filename = osp.basename(src_abspath)
-            # TODO: copy abspath -> 'static/response'
-            dest_abspath = osp.join(osp.abspath('web/static/response'), filename)
-            copyfile(src_abspath, dest_abspath)
-            url = '/static/response/' + filename
-            dispatch_result.update({'result': filename})
+            # expected values: 1.{'status': 'processing'} 2.{'status': 'finished', 'result': '/experiments/.../...jpg'}
+            if dispatch_result.get('status', None) == 'finished':
+                # TODO: convert extra_result['..'] from abspath to url => osp.path.basename() + url_header
+                src_abspath = dispatch_result['result']
+                filename = osp.basename(src_abspath)
+                # TODO: copy abspath -> 'static/response'
+                dest_abspath = osp.join(osp.abspath('web/static/response'), filename)
+                copyfile(src_abspath, dest_abspath)
+                url = '/static/response/' + filename
+                dispatch_result.update({'result': filename})
             ret.update(dispatch_result)
         return ret
 

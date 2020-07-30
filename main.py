@@ -8,7 +8,9 @@ import os
 import sys
 import random
 from typing import Iterable
-
+import utils
+import os.path as osp
+import tensorflow as tf
 # --- 3rd Packages -- #
 # import tensorflow as tf
 # if tf.__version__.startswith('1.'):
@@ -21,8 +23,9 @@ from typing import Iterable
 from config import *
 from helpers.util import *
 import modules
-
-
+TEMP_IMAGE_PATH = 'temp_image'
+gpus = tf.config.experimental.list_physical_devices('GPU')
+tf.config.experimental.set_virtual_device_configuration(gpus[0], [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=4000)])
 # --- Main --- #
 def main(*args, **kwargs):
     INFO('--- Experiment begins: {}---------------'.format(Config.ExperimentName))
@@ -37,7 +40,7 @@ def main(*args, **kwargs):
     from modules.data.data_manager import DataManager
     x_train, y_train = None, None
     x_test, y_test = None, None
-
+    data = None
     from modules.models.model_manager import ModelManager
     model = None
 
@@ -75,47 +78,59 @@ def main(*args, **kwargs):
                 import tensorflow as tf
                 from helpers.tf_helper import is_tfdataset
                 if isinstance(data, tf.data.Dataset):
+                    from helpers.tf_helper import tf_obj_to_np_array
                     if type(data.element_spec) is tuple:
                         # x_test = data.map(lambda x, y: x)
                         # y_test = data.map(lambda x, y: y)
-                        from helpers.tf_helper import tf_obj_to_np_array
+
                         # IMPROVE: unzip the ZipDataset by dataset.map(lambda). Any tf API for unzip?
                         x_test = tf_obj_to_np_array(data.map(lambda x, y: x))
                         y_test = tf_obj_to_np_array(data.map(lambda x, y: y))
                     else:
-                        data = data.batch(1)  # TODO: read config `batch_size` in model_train()
-                        data = data.prefetch(1)
-                        x_test, y_test = data, None
+                        # data = data.batch(1)  # TODO: read config `batch_size` in model_train()
+                        # data = data.prefetch(1)
+                        x_test, y_test = tf_obj_to_np_array(data), None
 
-            if model is None:  # not config_experiment.train.enabled
-                config_model: Params = config_experiment.model_set.model_trained
-                if not config_model.is_defined():
+            enc, dec = None, None
+            if enc is None or dec is None:  # not config_experiment.train.enabled
+                config_model_enc: Params = config_experiment.model_set.model_enc
+                config_model_dec: Params = config_experiment.model_set.model_dec
+                if not config_model_enc.is_defined() and config_model_dec.is_defined():
                     raise ValueError('Config error: `model_trained` node is not defined')
-                model = ModelManager.load_model(config_model.signature, **config_model)
+                enc = ModelManager.load_model(config_model_enc.signature, **config_model_enc)
+                dec = ModelManager.load_model(config_model_dec.signature, **config_model_dec)
 
-            predictions = None
-            extra_result = {}  # retrieve extra result from ModelManager
+            generated = None
+            generated_saved = False
             webapp = ensure_web_app()
 
             @webapp.on_task_query(namespace="main::model_predict", onetime=False)
             def handle_task_query(task_id):
-                nonlocal predictions
+                nonlocal generated
                 handler_result = {}
-                if predictions is None:
+                if not generated_saved:
                     handler_result.update({'status': 'processing'})
                 else:
                     # return abspath to webapp
-                    handler_result.update({'status': 'finished', 'result': extra_result['show_result_save_path']})
-                    predictions = None
+                    handler_result.update({'status': 'finished', 'result': generated_save_path})
+                    generated = None
                 return handler_result
 
-            predictions = ModelManager.model_predict(model, (x_test, y_test),
-                                                     extra_result=extra_result, **config_experiment.predict)
-            if not isinstance(predictions, Iterable):
-                predictions = [predictions]
-
-            INFO(f"predictions: {', '.join([str(_) for _ in predictions])}")
-            x_test = None  # request new x_test
+            c_feature = ModelManager.model_predict(enc, x_test[0], **config_experiment.predict_enc)
+            s_feature = ModelManager.model_predict(enc, x_test[1], **config_experiment.predict_enc)
+            target_features = utils.AdaIN(c_feature, s_feature, alpha=1)
+            generated = ModelManager.model_predict(dec, target_features, **config_experiment.predict_dec)
+            import tensorflow as tf
+            if isinstance(generated, tf.Tensor):
+                if generated.dtype == tf.float32:
+                    generated = tf.cast(generated, tf.uint8)
+                generated = generated.numpy()
+            # show_image_mat(generated[0])
+            import cv2
+            generated_save_path = osp.join(Path.ExperimentFolderAbs, tmp_filename_by_time('jpg'))
+            save_image_mat(generated[0], generated_save_path)
+            generated_saved = True
+        # INFO(f"generated: {', '.join([str(_) for _ in generated])}")
     else:
         INFO('--- Prediction was disabled ---------')
 

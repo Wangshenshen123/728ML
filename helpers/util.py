@@ -364,8 +364,8 @@ class Params(dict):
         :param other:
         :param key_map: dict of key_left -> key_right, for key translation
         """
-        other = other.copy()
-        others = others.copy()
+        other = other.copy() if other else None
+        others = others.copy() if other else None
         key_map = {} if key_map is None else key_map
         for key, value in self.items():
             # 1.key translation and replace mapped keys of other and others
@@ -419,8 +419,8 @@ class Params(dict):
 
     def update(self, other: dict, key_map: dict = None, **others):
         # NOTE: dict.update() always returns `None`, so should not be used in assignment
-        other = other.copy()
-        others = others.copy()
+        other = other.copy() if other else {}
+        others = others.copy() if others else {}
         key_map = {} if key_map is None else key_map
         for key, value in self.items():
             # 1.key translation and replace mapped keys of other and others
@@ -554,7 +554,6 @@ def adjust_interrupt_handlers():
         return 0  # chain to the next handler
 
     win32api.SetConsoleCtrlHandler(handler, 1)
-
 
 def ensure_web_app():
     from config import Path, __abspath__

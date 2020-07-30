@@ -612,7 +612,7 @@ def test_web_flask_app():
         return handler_result
 
     # 3. launch the web app
-    __test_flow__ = ('webapp_main_thread', 'webapp_new_thread')[0]
+    __test_flow__ = ('webapp_main_thread', 'webapp_new_thread')[1]
     INFO(f"__test_flow__: {__test_flow__}")
     if __test_flow__ == 'webapp_main_thread':
         webapp.run(**params_webapp)
@@ -862,4 +862,16 @@ def test_np_misc(run_legacy=False):
         idxs = idxs.take(np.arange(top_k), axis=-1)
         INFO(f'idxs top_k:{idxs}')
         probs = np.take_along_axis(probs, idxs, axis=-1)  # not np.take()
-  
+
+
+def test_python_misc(run_legacy=False):
+    # -------------------------------------------------------------------------------------------
+    # [2020-07-28] import_module load method
+    from helpers.util import safe_import_module
+    module = safe_import_module("modules.models.tensorlayer.vgg")
+    method = getattr(module, "vgg19")
+    INFO(f"type of method: {type(method)}")
+
+    # --- Done ----------------------------------------------------------------------------------
+    if run_legacy:
+        pass
